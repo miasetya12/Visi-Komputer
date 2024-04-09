@@ -5,6 +5,7 @@ from PIL import ImageTk, Image
 from tkinter.filedialog import askopenfile
 import cv2
 import numpy as np
+from tkinter import messagebox
 root = Tk()
 root.title("HOUGH LINE TRANSFORM ")
 ukurangambar = (350,350)
@@ -111,72 +112,55 @@ def canny(gaussian_image):
 def hough_transform(canny_image):
     global hasilhough
 
-    # Mengonversi gambar original dan hasil Canny menjadi numpy array
-    original_images = np.array(original)
-    canny_img = np.array(canny_image)  
+    try:
+        # Mengonversi gambar original dan hasil Canny menjadi numpy array
+        original_images = np.array(original)
+        canny_img = np.array(canny_image)  
 
-    # Menggunakan metode Hough Transform untuk mendeteksi garis-garis pada gambar Canny
-    lines = cv2.HoughLines(canny_img, 1, np.pi / 180, 150)  
-    # nilai 1 = Resolusi jarak rho adalah 1 pixel
-    # np.pi / 180 = Resolusi sudut theta dalam radian
-    # 150 = ambang batas (threshold) untuk mendeteksi garis.
+        # Menggunakan metode Hough Transform untuk mendeteksi garis-garis pada gambar Canny
+        lines = cv2.HoughLines(canny_img, 1, np.pi / 180, 150)  
 
+        # Jarak untuk menentukan panjang garis yang akan digambar
+        k = 3000 
 
-    print(lines)
-    # Jarak untuk menentukan panjang garis yang akan digambar
-    k = 1000 
+        # Melakukan iterasi untuk setiap garis yang terdeteksi
+        for curline in lines:
+            rho, theta = curline[0]
 
-    # Melakukan iterasi untuk setiap garis yang terdeteksi
-    for curline in lines:
-        rho, theta = curline[0]
-        print(f'ini rho: {rho}')
-        print(f'ini theta: {theta}')
-        # Cth Rho = 202 artinya garis yang direpresentasikan oleh titik tersebut memiliki jarak sejauh 202.0 piksel dari titik asal (0,0) ke garis tersebut
-        # Cth Theta = 1.5707963705062866 artinya titik tersebut memiliki orientasi sebesar 1.5 radian dari sumbu x positif ke arah sumbu y positif
+            # Menghitung vektor normal dan vektor tegak lurus terhadap garis
+            dhat = np.array([[np.cos(theta)], [np.sin(theta)]])
+            d = rho * dhat
 
-         # Menghitung vektor normal dan vektor tegak lurus terhadap garis
-        dhat = np.array([[np.cos(theta)], [np.sin(theta)]])
-        # a = np.cos(theta)
-        # b = np.sin(theta)
-        print(f'ini dhat: {dhat}')
+            lhat = np.array([[-np.sin(theta)], [np.cos(theta)]])
 
-        d = rho * dhat
-        # x0 = a*r
-        # y0 = b*r
-        print(f'ini d: {d}')
+            # Menghitung titik awal dan akhir garis yang akan digambar
+            p1 = d + k * lhat
+            p2 = d - k * lhat
 
-        lhat = np.array([[-np.sin(theta)], [np.cos(theta)]])
-        # x1 = int(x0 + 1000*(-b))
-        # y1 = int(y0 + 1000*(a))
-        # x2 = int(x0 - 1000*(-b))
-        # y2 = int(y0 - 1000*(a))
-        print(f'ini lhat: {lhat}')
+            p1 = p1.astype(int)
+            p2 = p2.astype(int)
 
-        # Menghitung titik awal dan akhir garis yang akan digambar
-        p1 = d + k * lhat
-        print(f'ini p1: {p1}')
-        p2 = d - k * lhat
-        print(f'ini p2: {p2}')
+            x1 = p1[0][0]
+            y1 = p1[1][0]
+            x2 = p2[0][0]
+            y2 = p2[1][0]
 
-        p1 = p1.astype(int)
-        p2 = p2.astype(int)
+            # Menggambar garis merah pada gambar original
+            cv2.line(original_images, (x1, y1), (x2,y2), (255, 0, 0), 2)
+        
+        # Konversi gambar hasil Hough Transform menjadi format yang dapat ditampilkan oleh Tkinter
+        hasilhough["image"] = ImageTk.PhotoImage(Image.fromarray(original_images))
+        
+        # Menampilkan gambar hasil Hough Transform pada GUI Tkinter
+        labelhough = Label(root, image=hasilhough["image"])
+        labelhough.grid(row=7, column=4)
+        labelfinal = Label(root, image=hasilhough["image"])
+        labelfinal.grid(row=1, column=2)
 
-        x1 = p1[0][0]
-        y1 = p1[1][0]
-        x2 = p2[0][0]
-        y2 = p2[1][0]
+    except Exception as e:
+        # Jika tidak terdeteksi garis, tampilkan pesan popup bahwa tidak ada garis yang terdeteksi
+        messagebox.showinfo("Info", "Tidak ada garis yang terdeteksi.")
 
-        # Menggambar garis merah pada gambar original
-        cv2.line(original_images, (x1, y1), (x2,y2), (255, 0, 0), 2)
-    
-    # Konversi gambar hasil Hough Transform menjadi format yang dapat ditampilkan oleh Tkinter
-    hasilhough["image"] = ImageTk.PhotoImage(Image.fromarray(original_images))
-    
-    # Menampilkan gambar hasil Hough Transform pada GUI Tkinter
-    labelhough = Label(root, image=hasilhough["image"])
-    labelhough.grid(row=7, column=4)
-    labelfinal = Label(root, image=hasilhough["image"])
-    labelfinal.grid(row=1, column=2)
 
 label1 = Label(root, text = "Original Image")
 label1.grid(row= 0, column= 1)
