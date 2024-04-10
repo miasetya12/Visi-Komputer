@@ -40,16 +40,26 @@ box()
 
 def openimage():
     global original
-    root.imagefile = filedialog.askopenfilename(initialdir="", filetypes=(("png files", "*.png *.jpg *.jpeg"), ("all files", "*.*")))
-    fileadress = root.imagefile
 
-    imageinput = Image.open(fileadress).resize((ukurangambar))
+    # Membuka dialog file
+    root.imagefile = filedialog.askopenfilename(initialdir="", filetypes=(("png files", "*.png *.jpg *.jpeg"), ("all files", "*.*")))
+    # Menyimpan path gambar
+    fileadress = root.imagefile
+    # Baca gambar menggunakan OpenCV
+    imageinput = cv2.imread(fileadress)
+    # Ubah gambar ke format RGB
+    imageinput = cv2.cvtColor(imageinput, cv2.COLOR_BGR2RGB)
+    # Ubah ukuran gambar
+    imageinput = cv2.resize(imageinput, ukurangambar)
+    # Ubah gambar ke format PIL untuk tampilan di Tkinter
+    imageinput = Image.fromarray(imageinput)
+    # Tampilkan gambar di Tkinter
     imageacces["image"] = ImageTk.PhotoImage(imageinput)
     labelinsert = Label(root, image=imageacces["image"])
     labelinsert.grid(row=1, column=1)
-    
+    # Ambil informasi pixel
     ambilpixel(imageinput)
-
+    # Simpan gambar asli sebagai numpy array
     original = np.array(imageinput)
 
 def ambilpixel(imageinput):
@@ -63,21 +73,19 @@ def ambilpixel(imageinput):
             nilaiB = imageinput.getpixel((garisX,garisY))[2]
             warna.append([garisX, garisY, nilaiR, nilaiG, nilaiB])
 
-def grayscale():
-    global gray
-    global convertgrays
-    convertgrays = Image.new("RGB", ukurangambar)
-    loadgrayscale = convertgrays.load()
+def grayscale(image):
+    # Konversi ke citra grayscale
+    grayscale_image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
 
-    for data in warna:
-        x,y,r,g,b = data
-        gray = ((r+g+b)//3) 
-        loadgrayscale[x,y]=(gray,gray,gray)
-        
-    hasilgray["image"] = ImageTk.PhotoImage(convertgrays)
+    # Ubah gambar grayscale ke format PIL untuk tampilan di Tkinter
+    grayscale_image_pil = Image.fromarray(grayscale_image)
+
+    # Tampilkan gambar grayscale di Tkinter
+    hasilgray["image"] = ImageTk.PhotoImage(grayscale_image_pil)
     labelconvertgray = Label(root, image=hasilgray["image"])
     labelconvertgray.grid(row=7, column=1)
-    return convertgrays
+    return grayscale_image
+
 
 def gaussian(grayscale_image):
     global hasilgaussian
@@ -93,7 +101,7 @@ def gaussian(grayscale_image):
 
 def convert():
     global grayscale_image
-    grayscale_image = grayscale()
+    grayscale_image = grayscale(original)
     gaussian_image = gaussian(grayscale_image)
     canny_image = canny(gaussian_image)
     hough_transform (canny_image)   
