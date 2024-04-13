@@ -13,25 +13,32 @@ ukurangambar = (350,350)
 imageacces, converting, hasilhough, hasilgray, hasilcanny, hasilgaussian = dict(), dict(), dict(), dict(), dict(), dict()
 
 def box():
-   
+    # Membuat gambar baru dengan warna RGB serta ukuran gambar diatur
     imgconvert = Image.new("RGB", ukurangambar)
+    # Mengkonversi gambar agar dapat di tampilkan oleh Tkinter
     converting["image"] = ImageTk.PhotoImage(imgconvert)
 
+    # Membuat objek label Tkinter untuk menampilkan Original image
     labelinsert = Label(root, image= converting["image"])
     labelinsert.grid(row= 1, column=1)
 
+    # Membuat objek label Tkinter untuk menampilkan Grayscale image
     labelconvertgray = Label(root, image= converting["image"])
     labelconvertgray.grid(row=7, column=1)
     
+    # Membuat objek label Tkinter untuk menampilkan Gaussian image
     labelgaussian = Label(root, image= converting["image"])
     labelgaussian.grid(row=7, column=3)
 
+    # Membuat objek label Tkinter untuk menampilkan Canny image
     labelcanny = Label(root, image= converting["image"])
     labelcanny.grid(row=7, column=2)
 
+    # Membuat objek label Tkinter untuk menampilkan hasil Hough Transform
     labelhough = Label(root, image= converting["image"])
     labelhough.grid(row=7, column=4)
 
+    # Membuat objek label Tkinter untuk menampilkan hasil Haough Transform namun letaknya di samping Original image
     labelfinal = Label(root, image= converting["image"])
     labelfinal.grid(row=1, column=2)
 
@@ -88,33 +95,47 @@ def grayscale(image):
 
 
 def gaussian(grayscale_image):
-    global hasilgaussian
+    global hasilgaussian # Deklarasi variabel sebagai global untuk menyimpan hasil gambar gaussian
     global convertgrays
-    gray_image = np.array(grayscale_image)
 
+    # Konversi gambar grayscale menjadi array numpy
+    gray_image = np.array(grayscale_image)
+    # Menerapkan filter gaussian pada gambar grayscale dengan kernel 5x5 dan std 0
     blurred_image = cv2.GaussianBlur(gray_image, (5, 5), 0) 
+    # Konversi gambar hasil filter Gaussian menjadi format yang dapat ditampilkan oleh Tkinter
     hasilgaussian["image"] = ImageTk.PhotoImage(Image.fromarray(blurred_image))
-    
+    # Buat label Tkinter yang menampilkan gambar hasil filter Gaussian
     labelgaussian = Label(root, image=hasilgaussian["image"])
-    labelgaussian.grid(row=7, column=2)
-    return blurred_image
+    labelgaussian.grid(row=7, column=2) # Menempatkan label di baris ke-7 dan kolom ke-2 di GUI
+    return blurred_image # Mengembalikan gambar hasil filter Gaussian
 
 def convert():
-    global grayscale_image
+    global grayscale_image # Variabel grayscale_image dideklarasikan sebagai global agar bisa diakses di luar fungsi
+    # Konversi gambar asli menjadi citra grayscale
     grayscale_image = grayscale(original)
+    # Menerapkan filter Gaussian pada citra grayscale
     gaussian_image = gaussian(grayscale_image)
+    # Menerapkan deteksi tepi Canny pada citra hasil filter Gaussian
     canny_image = canny(gaussian_image)
+    # Menerapkan transformasi Hough Circle pada citra hasil deteksi tepi Canny
     hough_transform (canny_image)   
 
 def canny(gaussian_image):
     global canny_image
+
+    # Mengonversi gambar hasil filter Gaussian menjadi array numpy
     gray_image = np.array(gaussian_image)
-    canny = cv2.Canny(gray_image, 50, 150, apertureSize=3)
+    # Menerapkan deteksi tepi Canny pada gambar grayscale
+    # Parameter yg diperlukan adalah gambar hasil gaussian, ambang bawah (50), ambang atas (150)
+    canny = cv2.Canny(gray_image, 50, 150, apertureSize=3) # apertureSize=3, menggunakan kernel Sobel 3x3 untuk menghitung gradien
+    # Konversi gambar hasil deteksi tepi Canny ke format yang dapat ditampilkan oleh Tkinter
     canny_image = Image.fromarray(canny)
+    # Simpan gambar hasil deteksi tepi Canny dalam kamus hasilcanny untuk ditampilkan di GUI
     hasilcanny["image"] = ImageTk.PhotoImage(canny_image)
+    # Membuat label Tkinter yang menampilkan gambar hasil deteksi tepi Canny
     labelcanny = Label(root, image=hasilcanny["image"])
     labelcanny.grid(row=7, column=3)
-    return canny_image
+    return canny_image # Mengembalikan gambar hasil deteksi tepi Canny
 
 
 def hough_transform(canny_image):
@@ -170,6 +191,7 @@ def hough_transform(canny_image):
         messagebox.showinfo("Info", "Tidak ada garis yang terdeteksi.")
 
 
+# Membuat beberapa objek Label dalam GUI Tkinter untuk menampilkan teks pada antarmuka pengguna. 
 label1 = Label(root, text = "Original Image")
 label1.grid(row= 0, column= 1)
 label1b = Label(root, text = "Final Result Image")
@@ -183,11 +205,13 @@ label4.grid(row = 6, column=3)
 label5 = Label(root, text = "4. Hough Line Result")
 label5.grid(row = 6, column=4)
 
-tombolConvert = Button(root, text="Convert", command=convert)
-tombolInputGambar = Button(root, text="Buka File", command=openimage)
-tombolReset = Button(root, text= "RESET", command= box)
+# Membuat tiga tombol pada GUI Tkinter
+tombolConvert = Button(root, text="Convert", command=convert) # Menjalankan fungsi convert() ketika tombol ini ditekan
+tombolInputGambar = Button(root, text="Buka File", command=openimage) # Menjalankan fungsi openimage() ketika tombol ini ditekan
+tombolReset = Button(root, text= "RESET", command= box) # Menjalankan fungsi box() ketika tombol ini ditekan, dan mengatur ulang GUI seperti semula
 
-
+# Menempatkan tiga tombol pada posisi tertentu
+# Parameter sticky=EW menunjukkan bahwa tombol akan menempel pada sisi timur dan barat dari selnya, yang berarti tombol akan memperluas ukurannya secara horizontal mengikuti lebar sel.
 tombolInputGambar.grid(row=2, column=1,sticky=EW) 
 tombolConvert.grid(row=2, column=2,sticky=EW)
 tombolReset.grid(row=3, column=1,columnspan=2, sticky = EW)
