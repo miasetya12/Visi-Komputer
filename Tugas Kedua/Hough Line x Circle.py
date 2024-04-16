@@ -152,17 +152,19 @@ def canny(gaussian_image):
 def hough_line(canny_image):
     global hasilhough
 
+    # documentations: https://docs.opencv.org/4.x/d9/db0/tutorial_hough_lines.html
+    
     try:
         # Mengonversi gambar original dan hasil Canny menjadi numpy array
         original_images = np.array(original)
-        canny_img = np.array(canny_image)  
+        canny_img = np.array(canny_image)
 
         # Menggunakan metode Hough Transform untuk mendeteksi garis-garis pada gambar Canny
-        lines = cv2.HoughLines(canny_img, 1, np.pi / 180, 150)  
+        lines = cv2.HoughLines(canny_img, 1, np.pi / 180, 100)  
         # nilai 1 = Resolusi jarak rho adalah 1 pixel
         # np.pi / 180 = Resolusi sudut theta dalam radian
-        # 150 = ambang batas (threshold) untuk mendeteksi garis.
-        
+        # 100 = ambang batas (threshold) untuk mendeteksi garis.  
+
         # Jarak untuk menentukan panjang garis yang akan digambar
         k = 1000
 
@@ -229,14 +231,17 @@ def hough_circle(canny_image):
         # Mendeteksi lingkaran menggunakan metode Hough Circle
         circles = cv2.HoughCircles(canny_img, cv2.HOUGH_GRADIENT, dp=1, minDist=20, param1=50, param2=30, minRadius=0, maxRadius=0)
 
+        # print fungsi cv2.HoughCircles() untuk mengetahui daftar lingkaran yang terdeteksi beserta koordinat pusat dan radiusnya
+        print(circles)
+
         # Menggambar lingkaran yang terdeteksi pada gambar original
-        if circles is not None:
-            circles = np.uint16(np.around(circles))
-            for circle in circles[0, :]:
-                # Menggambar lingkaran pada gambar original
-                cv2.circle(original, (circle[0], circle[1]), circle[2], (0, 255, 0), 2)
-                # Menggambar titik tengah lingkaran
-                cv2.circle(original, (circle[0], circle[1]), 2, (0, 0, 255), 3)
+        # if circles is not None:
+        circles = np.uint16(np.around(circles))
+        for circle in circles[0, :]:
+            # Menggambar lingkaran pada gambar original
+            cv2.circle(original, (circle[0], circle[1]), circle[2], (0, 255, 0), 2)
+            # Menggambar titik tengah lingkaran
+            cv2.circle(original, (circle[0], circle[1]), 2, (0, 0, 255), 3)
 
         # Konversi gambar hasil Hough Circle menjadi format yang dapat ditampilkan oleh Tkinter
         hasilhoughcircle["image"] = ImageTk.PhotoImage(Image.fromarray(original))
