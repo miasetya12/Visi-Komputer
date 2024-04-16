@@ -206,53 +206,33 @@ def hough_circle(canny_image):
     global hasilhoughcircle
 
     try:
-        # Mengonversi gambar original dan hasil Canny menjadi numpy array
-        original_images = np.array(original)
+        # Mengonversi gambar hasil deteksi tepi Canny menjadi array numpy
         canny_img = np.array(canny_image)  
 
-        # Menggunakan metode Hough Transform untuk mendeteksi garis-garis pada gambar Canny
-        lines = cv2.HoughLines(canny_img, 1, np.pi / 180, 150)  
+        # Mendeteksi lingkaran menggunakan metode Hough Circle
+        circles = cv2.HoughCircles(canny_img, cv2.HOUGH_GRADIENT, dp=1, minDist=20, param1=50, param2=30, minRadius=0, maxRadius=0)
 
-        # Jarak untuk menentukan panjang garis yang akan digambar
-        k = 3000 
+        # Menggambar lingkaran yang terdeteksi pada gambar original
+        if circles is not None:
+            circles = np.uint16(np.around(circles))
+            for circle in circles[0, :]:
+                # Menggambar lingkaran pada gambar original
+                cv2.circle(original, (circle[0], circle[1]), circle[2], (0, 255, 0), 2)
+                # Menggambar titik tengah lingkaran
+                cv2.circle(original, (circle[0], circle[1]), 2, (0, 0, 255), 3)
 
-        # Melakukan iterasi untuk setiap garis yang terdeteksi
-        for curline in lines:
-            rho, theta = curline[0]
-
-            # Menghitung vektor normal dan vektor tegak lurus terhadap garis
-            dhat = np.array([[np.cos(theta)], [np.sin(theta)]])
-            d = rho * dhat
-
-            lhat = np.array([[-np.sin(theta)], [np.cos(theta)]])
-
-            # Menghitung titik awal dan akhir garis yang akan digambar
-            p1 = d + k * lhat
-            p2 = d - k * lhat
-
-            p1 = p1.astype(int)
-            p2 = p2.astype(int)
-
-            x1 = p1[0][0]
-            y1 = p1[1][0]
-            x2 = p2[0][0]
-            y2 = p2[1][0]
-
-            # Menggambar garis merah pada gambar original
-            cv2.line(original_images, (x1, y1), (x2,y2), (255, 0, 0), 2)
+        # Konversi gambar hasil Hough Circle menjadi format yang dapat ditampilkan oleh Tkinter
+        hasilhoughcircle["image"] = ImageTk.PhotoImage(Image.fromarray(original))
         
-        # Konversi gambar hasil Hough Transform menjadi format yang dapat ditampilkan oleh Tkinter
-        hasilhoughcircle["image"] = ImageTk.PhotoImage(Image.fromarray(original_images))
-        
-        # Menampilkan gambar hasil Hough Transform pada GUI Tkinter
-        labelhough = Label(root, image=hasilhoughcircle["image"])
-        labelhough.grid(row=7, column=4)
+        # Menampilkan gambar hasil Hough Circle pada GUI Tkinter
+        labelhoughcircle = Label(root, image=hasilhoughcircle["image"])
+        labelhoughcircle.grid(row=7, column=4)
         labelfinal = Label(root, image=hasilhoughcircle["image"])
         labelfinal.grid(row=1, column=2)
 
     except Exception as e:
-        # Jika tidak terdeteksi garis, tampilkan pesan popup bahwa tidak ada garis yang terdeteksi
-        messagebox.showinfo("Info", "Tidak ada garis yang terdeteksi.")
+        # Jika tidak terdeteksi lingkaran, tampilkan pesan popup bahwa tidak ada lingkaran yang terdeteksi
+        messagebox.showinfo("Info", "Tidak ada lingkaran yang terdeteksi.")
 
 
 # Membuat beberapa objek Label dalam GUI Tkinter untuk menampilkan teks pada antarmuka pengguna. 
