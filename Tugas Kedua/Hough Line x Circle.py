@@ -24,19 +24,19 @@ def box():
 
     # Membuat objek label Tkinter untuk menampilkan Grayscale image
     labelconvertgray = Label(root, image= converting["image"])
-    labelconvertgray.grid(row=8, column=1)
+    labelconvertgray.grid(row=7, column=1)
     
     # Membuat objek label Tkinter untuk menampilkan Gaussian image
     labelgaussian = Label(root, image= converting["image"])
-    labelgaussian.grid(row=8, column=3)
+    labelgaussian.grid(row=7, column=3)
 
     # Membuat objek label Tkinter untuk menampilkan Canny image
     labelcanny = Label(root, image= converting["image"])
-    labelcanny.grid(row=8, column=2)
+    labelcanny.grid(row=7, column=2)
 
     # Membuat objek label Tkinter untuk menampilkan hasil Hough Transform
     labelhough = Label(root, image= converting["image"])
-    labelhough.grid(row=8, column=4)
+    labelhough.grid(row=7, column=4)
 
     # Membuat objek label Tkinter untuk menampilkan hasil Haough Transform namun letaknya di samping Original image
     labelfinal = Label(root, image= converting["image"])
@@ -258,13 +258,13 @@ label1.grid(row= 0, column= 1)
 label1b = Label(root, text = "Final Result Image")
 label1b.grid(row= 0, column= 2)
 label2 = Label(root, text = "1. Grayscale Result")
-label2.grid(row = 7, column= 1)
+label2.grid(row = 6, column= 1)
 label3 = Label(root, text = "2. Gaussian Result")
-label3.grid(row = 7, column=2)
+label3.grid(row = 6, column=2)
 label4 = Label(root, text = "3. Canny Result")
-label4.grid(row = 7, column=3)
+label4.grid(row = 6, column=3)
 label5 = Label(root, text = "4. Hough Line Result")
-label5.grid(row = 7, column=4)
+label5.grid(row = 6, column=4)
 
 # Membuat tiga tombol pada GUI Tkinter
 tombolConvertLine = Button(root, text="Convert Hough Line", command=convert_line) # Menjalankan fungsi convert() ketika tombol ini ditekan
