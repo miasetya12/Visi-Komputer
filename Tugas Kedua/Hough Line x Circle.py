@@ -159,20 +159,37 @@ def hough_line(canny_image):
 
         # Menggunakan metode Hough Transform untuk mendeteksi garis-garis pada gambar Canny
         lines = cv2.HoughLines(canny_img, 1, np.pi / 180, 150)  
-
+        # nilai 1 = Resolusi jarak rho adalah 1 pixel
+        # np.pi / 180 = Resolusi sudut theta dalam radian
+        # 150 = ambang batas (threshold) untuk mendeteksi garis.
+        
         # Jarak untuk menentukan panjang garis yang akan digambar
-        k = 3000 
+        k = 1000
 
         # Melakukan iterasi untuk setiap garis yang terdeteksi
         for curline in lines:
             rho, theta = curline[0]
+            print(f'ini rho: {rho}')
+            print(f'ini theta: {theta}')
+            # Cth Rho = 202 artinya garis yang direpresentasikan oleh titik tersebut memiliki jarak sejauh 202.0 piksel dari titik asal (0,0) ke garis tersebut
+            # Cth Theta = 1.5707963705062866 artinya titik tersebut memiliki orientasi sebesar 1.5 radian dari sumbu x positif ke arah sumbu y positif
 
             # Menghitung vektor normal dan vektor tegak lurus terhadap garis
             dhat = np.array([[np.cos(theta)], [np.sin(theta)]])
+            # a = np.cos(theta)
+            # b = np.sin(theta)
+
             d = rho * dhat
-
+            # x0 = a*r
+            # y0 = b*r
+            
             lhat = np.array([[-np.sin(theta)], [np.cos(theta)]])
-
+            # x1 = int(x0 + 1000*(-b))
+            # y1 = int(y0 + 1000*(a))
+            # x2 = int(x0 - 1000*(-b))
+            # y2 = int(y0 - 1000*(a))
+            print(f'ini lhat: {lhat}')
+            
             # Menghitung titik awal dan akhir garis yang akan digambar
             p1 = d + k * lhat
             p2 = d - k * lhat
