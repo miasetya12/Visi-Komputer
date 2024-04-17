@@ -164,6 +164,8 @@ def hough_line(canny_image):
         # nilai 1 = Resolusi jarak rho adalah 1 pixel
         # np.pi / 180 = Resolusi sudut theta dalam radian
         # 100 = ambang batas (threshold) untuk mendeteksi garis.  
+        # akan ada 2 kolom output 
+        print(f'ini lines: {lines}')
 
         # Jarak untuk menentukan panjang garis yang akan digambar
         k = 1000
@@ -176,37 +178,44 @@ def hough_line(canny_image):
             # Cth Rho = 202 artinya garis yang direpresentasikan oleh titik tersebut memiliki jarak sejauh 202.0 piksel dari titik asal (0,0) ke garis tersebut
             # Cth Theta = 1.5707963705062866 artinya titik tersebut memiliki orientasi sebesar 1.5 radian dari sumbu x positif ke arah sumbu y positif
 
-            # Menghitung vektor normal dan vektor tegak lurus terhadap garis
-            dhat = np.array([[np.cos(theta)], [np.sin(theta)]])
+            a_b = np.array([[np.cos(theta)], [np.sin(theta)]])
             # a = np.cos(theta)
             # b = np.sin(theta)
+            print(f'ini a_b: {a_b}')
 
-            d = rho * dhat
+            x0_y0 = rho * a_b
             # x0 = a*r
             # y0 = b*r
+            print(f'ini x0_y0: {x0_y0}')
             
-            lhat = np.array([[-np.sin(theta)], [np.cos(theta)]])
+            minSin_Cos = np.array([[-np.sin(theta)], [np.cos(theta)]])
             # x1 = int(x0 + 1000*(-b))
             # y1 = int(y0 + 1000*(a))
             # x2 = int(x0 - 1000*(-b))
             # y2 = int(y0 - 1000*(a))
-            print(f'ini lhat: {lhat}')
+            print(f'ini minSin_Cos: {minSin_Cos}')
             
             # Menghitung titik awal dan akhir garis yang akan digambar
-            p1 = d + k * lhat
-            p2 = d - k * lhat
+            p1 = x0_y0 + k * minSin_Cos
+            p2 = x0_y0 - k * minSin_Cos
 
             p1 = p1.astype(int)
             p2 = p2.astype(int)
+            print(f'ini p1: {p1} dan p2 {p2}')
 
             x1 = p1[0][0]
             y1 = p1[1][0]
+
             x2 = p2[0][0]
             y2 = p2[1][0]
 
             # Menggambar garis merah pada gambar original
             cv2.line(original_images, (x1, y1), (x2,y2), (255, 0, 0), 2)
-        
+            # 2 = ketebalan garis
+
+        # Print jumlah garis yang terdeteksi
+        print(f"Jumlah garis yang terdeteksi: {len(lines)}")
+
         # Konversi gambar hasil Hough Transform menjadi format yang dapat ditampilkan oleh Tkinter
         hasilhough["image"] = ImageTk.PhotoImage(Image.fromarray(original_images))
         
@@ -217,9 +226,8 @@ def hough_line(canny_image):
         labelfinal.grid(row=1, column=2)
 
     except Exception as e:
-        # Jika tidak terdeteksi garis, tampilkan pesan popup bahwa tidak ada garis yang terdeteksi
-        messagebox.showinfo("Info", "Tidak ada garis yang terdeteksi.")
-
+            # Jika tidak terdeteksi garis, tampilkan pesan popup bahwa tidak ada garis yang terdeteksi
+            messagebox.showinfo("Info", "Tidak ada garis yang terdeteksi.")
 
 def hough_circle(canny_image):
     global hasilhoughcircle
