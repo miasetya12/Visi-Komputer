@@ -7,10 +7,10 @@ import cv2
 import numpy as np
 from tkinter import messagebox
 root = Tk()
-root.title("HOUGH LINE TRANSFORM ")
+root.title("HOUGH TRANSFORM ")
 ukurangambar = (350,350)
 
-imageacces, converting, hasilhough, hasilgray, hasilcanny, hasilgaussian, hasilhoughcircle = dict(), dict(), dict(), dict(), dict(), dict(), dict()
+imageacces, converting, hasilhough, hasilgray, hasilcanny, hasilgaussian, hasilhoughcircle, hasilhoughP = dict(), dict(), dict(), dict(), dict(), dict(), dict(), dict()
 
 def box():
     # Membuat gambar baru dengan warna RGB serta ukuran gambar diatur
@@ -37,10 +37,19 @@ def box():
     # Membuat objek label Tkinter untuk menampilkan hasil Hough Transform
     labelhough = Label(root, image= converting["image"])
     labelhough.grid(row=7, column=4)
+    
 
     # Membuat objek label Tkinter untuk menampilkan hasil Haough Transform namun letaknya di samping Original image
     labelfinal = Label(root, image= converting["image"])
     labelfinal.grid(row=1, column=2)
+
+    # Membuat objek label Tkinter untuk menampilkan hasil Haough Transform namun letaknya di samping Original image
+    labelfinal2 = Label(root, image= converting["image"])
+    labelfinal2.grid(row=1, column=3)
+
+    # Membuat objek label Tkinter untuk menampilkan hasil Haough Transform namun letaknya di samping Original image
+    labelfinal3 = Label(root, image= converting["image"])
+    labelfinal3.grid(row=1, column=4)
 
     
 box()
@@ -120,6 +129,17 @@ def convert_line():
     # Menerapkan transformasi Hough Circle pada citra hasil deteksi tepi Canny
     hough_line (canny_image)   
 
+def convert_lineP():
+    global grayscale_image # Variabel grayscale_image dideklarasikan sebagai global agar bisa diakses di luar fungsi
+    # Konversi gambar asli menjadi citra grayscale
+    grayscale_image = grayscale(original)
+    # Menerapkan filter Gaussian pada citra grayscale
+    gaussian_image = gaussian(grayscale_image)
+    # Menerapkan deteksi tepi Canny pada citra hasil filter Gaussian
+    canny_image = canny(gaussian_image)
+    # Menerapkan transformasi Hough Circle pada citra hasil deteksi tepi Canny
+    hough_lineP (canny_image)  
+
 def convert_circle():
     global grayscale_image # Variabel grayscale_image dideklarasikan sebagai global agar bisa diakses di luar fungsi
     # Konversi gambar asli menjadi citra grayscale
@@ -150,6 +170,9 @@ def canny(gaussian_image):
 
 
 def hough_line(canny_image):
+    # Cocok untuk mendeteksi garis lurus pada citra biner
+    # Tidak memberikan informasi tentang koordinat titik-titik garis yang terdeteksi
+    
     global hasilhough
 
     # documentations: https://docs.opencv.org/4.x/d9/db0/tutorial_hough_lines.html
@@ -167,9 +190,6 @@ def hough_line(canny_image):
         # akan ada 2 kolom output 
         print(f'ini lines: {lines}')
 
-        # Jarak untuk menentukan panjang garis yang akan digambar
-        k = 1000
-
         # Melakukan iterasi untuk setiap garis yang terdeteksi
         for curline in lines:
             rho, theta = curline[0]
@@ -178,39 +198,22 @@ def hough_line(canny_image):
             # Cth Rho = 202 artinya garis yang direpresentasikan oleh titik tersebut memiliki jarak sejauh 202.0 piksel dari titik asal (0,0) ke garis tersebut
             # Cth Theta = 1.5707963705062866 artinya titik tersebut memiliki orientasi sebesar 1.5 radian dari sumbu x positif ke arah sumbu y positif
 
-            a_b = np.array([[np.cos(theta)], [np.sin(theta)]])
-            # a = np.cos(theta)
-            # b = np.sin(theta)
-            print(f'ini a_b: {a_b}')
+            a = np.cos(theta)
+            b = np.sin(theta)
 
-            x0_y0 = rho * a_b
-            # x0 = a*r
-            # y0 = b*r
-            print(f'ini x0_y0: {x0_y0}')
-            
-            minSin_Cos = np.array([[-np.sin(theta)], [np.cos(theta)]])
-            # x1 = int(x0 + 1000*(-b))
-            # y1 = int(y0 + 1000*(a))
-            # x2 = int(x0 - 1000*(-b))
-            # y2 = int(y0 - 1000*(a))
-            print(f'ini minSin_Cos: {minSin_Cos}')
-            
+            # Menghitung koordinat garis yang dideteksi
+            x0 = a*rho
+            y0 = b*rho
+
+            # Jarak untuk menentukan panjang garis yang akan digambar
+            k = 1000
+
             # Menghitung titik awal dan akhir garis yang akan digambar
-            p1 = x0_y0 + k * minSin_Cos
-            p2 = x0_y0 - k * minSin_Cos
-
-            p1 = p1.astype(int)
-            p2 = p2.astype(int)
-            print(f'ini p1: {p1} dan p2 {p2}')
-
-            x1 = p1[0][0]
-            y1 = p1[1][0]
-
-            x2 = p2[0][0]
-            y2 = p2[1][0]
+            pt1 = (int(x0 + k*(-b)), int(y0 + k*(a)))
+            pt2 = (int(x0 - k*(-b)), int(y0 - k*(a)))
 
             # Menggambar garis merah pada gambar original
-            cv2.line(original_images, (x1, y1), (x2,y2), (255, 0, 0), 2)
+            cv2.line(original_images, (pt1), (pt2), (255, 0, 0), 2)
             # 2 = ketebalan garis
 
         # Print jumlah garis yang terdeteksi
@@ -229,6 +232,50 @@ def hough_line(canny_image):
             # Jika tidak terdeteksi garis, tampilkan pesan popup bahwa tidak ada garis yang terdeteksi
             messagebox.showinfo("Info", "Tidak ada garis yang terdeteksi.")
 
+
+def hough_lineP(canny_image):
+    # Lebih cocok untuk mendeteksi garis-garis yang tidak lurus
+    # Memberikan koordinat titik-titik awal dan akhir dari setiap garis yang terdeteksi
+
+    global hasilhoughP
+    try:
+        original_images = np.array(original)
+        canny_img = np.array(canny_image)
+
+        # Menggunakan metode Hough Transform probabilistik untuk mendeteksi garis-garis pada gambar Canny
+        lines = cv2.HoughLinesP(canny_img, 1, np.pi / 180, 50, 1000,10)
+        # 50 = threshold (ambang batas yang digunakan dalam deteksi garis)
+        # 100 = minLineLength (panjang minimum yang diperlukan untuk sebuah garis. Garis-garis yang lebih pendek dari nilai ini akan diabaikan)
+        # 50 = maxLineGap (celah maksimum yang diizinkan di antara titik-titik pada garis untuk tetap dianggap sebagai bagian dari garis yang sama. 
+        # Jika jarak antara dua titik lebih besar dari nilai ini, maka dua bagian garis tersebut dianggap terpisah.
+
+        print(lines)
+
+        # Melakukan iterasi untuk setiap garis yang terdeteksi
+        for line in lines:
+            x1, y1, x2, y2 = line[0]
+            cv2.line(original_images, (x1, y1), (x2, y2), (255, 0, 0), 2)
+        # (x1, y1) adalah koordinat titik awal dari garis
+        # (x2, y2) adalah koordinat titik akhir dari garis
+
+        # Print jumlah garis yang terdeteksi
+        print(f"Jumlah garis yang terdeteksi: {len(lines)}")
+
+        # Konversi gambar hasil Hough Transform menjadi format yang dapat ditampilkan oleh Tkinter
+        hasilhoughP["image"] = ImageTk.PhotoImage(Image.fromarray(original_images))
+        
+        # Menampilkan gambar hasil Hough Transform pada GUI Tkinter
+        labelhough = Label(root, image=hasilhoughP["image"])
+        labelhough.grid(row=7, column=4)
+        labelfinal2 = Label(root, image=hasilhoughP["image"])
+        labelfinal2.grid(row=1, column=3)
+
+    except Exception as e:
+        # Jika tidak terdeteksi garis, tampilkan pesan popup bahwa tidak ada garis yang terdeteksi
+        messagebox.showinfo("Info", "Tidak ada garis yang terdeteksi.")
+
+
+
 def hough_circle(canny_image):
     global hasilhoughcircle
 
@@ -237,7 +284,7 @@ def hough_circle(canny_image):
         canny_img = np.array(canny_image)  
 
         # Mendeteksi lingkaran menggunakan metode Hough Circle
-        circles = cv2.HoughCircles(canny_img, cv2.HOUGH_GRADIENT, dp=1, minDist=20, param1=50, param2=30, minRadius=0, maxRadius=0)
+        circles = cv2.HoughCircles(canny_img, cv2.HOUGH_GRADIENT, dp=1, minDist=70, param1=100, param2=30, minRadius=10, maxRadius=50)
 
         # print fungsi cv2.HoughCircles() untuk mengetahui daftar lingkaran yang terdeteksi beserta koordinat pusat dan radiusnya
         print(circles)
@@ -257,8 +304,8 @@ def hough_circle(canny_image):
         # Menampilkan gambar hasil Hough Circle pada GUI Tkinter
         labelhoughcircle = Label(root, image=hasilhoughcircle["image"])
         labelhoughcircle.grid(row=7, column=4)
-        labelfinal = Label(root, image=hasilhoughcircle["image"])
-        labelfinal.grid(row=1, column=2)
+        labelfinal3 = Label(root, image=hasilhoughcircle["image"])
+        labelfinal3.grid(row=1, column=4)
 
     except Exception as e:
         # Jika tidak terdeteksi lingkaran, tampilkan pesan popup bahwa tidak ada lingkaran yang terdeteksi
@@ -268,28 +315,34 @@ def hough_circle(canny_image):
 # Membuat beberapa objek Label dalam GUI Tkinter untuk menampilkan teks pada antarmuka pengguna. 
 label1 = Label(root, text = "Original Image")
 label1.grid(row= 0, column= 1)
-label1b = Label(root, text = "Final Result Image")
+label1b = Label(root, text = "Final Result Hough Line Image")
 label1b.grid(row= 0, column= 2)
+label1bb = Label(root, text = "Final Result Hough Line P Image")
+label1bb.grid(row= 0, column= 3)
+label1bbb = Label(root, text = "Final Result Hough Circle Image")
+label1bbb.grid(row= 0, column= 4)
 label2 = Label(root, text = "1. Grayscale Result")
 label2.grid(row = 6, column= 1)
 label3 = Label(root, text = "2. Gaussian Result")
 label3.grid(row = 6, column=2)
 label4 = Label(root, text = "3. Canny Result")
 label4.grid(row = 6, column=3)
-label5 = Label(root, text = "4. Hough Line Result")
+label5 = Label(root, text = "4. Hough Result")
 label5.grid(row = 6, column=4)
 
 # Membuat tiga tombol pada GUI Tkinter
 tombolConvertLine = Button(root, text="Convert Hough Line", command=convert_line) # Menjalankan fungsi convert() ketika tombol ini ditekan
+tombolConvertLineP = Button(root, text="Convert Hough P Line", command=convert_lineP)
 tombolInputGambar = Button(root, text="Buka File", command=openimage) # Menjalankan fungsi openimage() ketika tombol ini ditekan
 tombolReset = Button(root, text= "RESET", command= box) # Menjalankan fungsi box() ketika tombol ini ditekan, dan mengatur ulang GUI seperti semula
 tombolConvertCircle = Button(root, text="Convert Hough Circle", command=convert_circle) 
 
 # Menempatkan tiga tombol pada posisi tertentu
 # Parameter sticky=EW menunjukkan bahwa tombol akan menempel pada sisi timur dan barat dari selnya, yang berarti tombol akan memperluas ukurannya secara horizontal mengikuti lebar sel.
-tombolInputGambar.grid(row=2, column=1,sticky=EW) 
+tombolInputGambar.grid(row=2, column=1,sticky=EW)
 tombolConvertLine.grid(row=2, column=2,sticky=EW)
 tombolReset.grid(row=3, column=1, sticky = EW)
-tombolConvertCircle.grid(row=3, column=2,sticky=EW)
+tombolConvertCircle.grid(row=2, column=4,sticky=EW)
+tombolConvertLineP.grid(row=2, column=3,sticky=EW)
 
 root.mainloop()
