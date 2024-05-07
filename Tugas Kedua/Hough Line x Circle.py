@@ -183,10 +183,11 @@ def hough_line(canny_image):
         canny_img = np.array(canny_image)
 
         # Menggunakan metode Hough Transform untuk mendeteksi garis-garis pada gambar Canny
-        lines = cv2.HoughLines(canny_img, 1, np.pi / 180, 100)  
+        lines = cv2.HoughLines(canny_img, 1, np.pi / 500, 180)  
         # nilai 1 = Resolusi jarak rho adalah 1 pixel
-        # np.pi / 180 = Resolusi sudut theta dalam radian
+        # np.pi / 180 = Resolusi sudut theta dalam radian, semakin besar makan semakin presisi
         # 100 = ambang batas (threshold) untuk mendeteksi garis.  
+        # Nilai yang lebih tinggi akan menghasilkan deteksi garis yang lebih ketat, sementara nilai yang lebih rendah akan menghasilkan lebih banyak garis yang terdeteksi.
         # akan ada 2 kolom output 
         print(f'ini lines: {lines}')
 
@@ -243,8 +244,9 @@ def hough_lineP(canny_image):
         canny_img = np.array(canny_image)
 
         # Menggunakan metode Hough Transform probabilistik untuk mendeteksi garis-garis pada gambar Canny
-        lines = cv2.HoughLinesP(canny_img, 1, np.pi / 180, 50, 1000,10)
-        # 50 = threshold (ambang batas yang digunakan dalam deteksi garis)
+        lines = cv2.HoughLinesP(canny_img,1,np.pi/180,150,minLineLength=30,maxLineGap=50)
+
+        # 50 = threshold (ambang batas yang digunakan dalam deteksi garis). Semakin besar garis yg dideteksi semakin sedikit
         # 100 = minLineLength (panjang minimum yang diperlukan untuk sebuah garis. Garis-garis yang lebih pendek dari nilai ini akan diabaikan)
         # 50 = maxLineGap (celah maksimum yang diizinkan di antara titik-titik pada garis untuk tetap dianggap sebagai bagian dari garis yang sama. 
         # Jika jarak antara dua titik lebih besar dari nilai ini, maka dua bagian garis tersebut dianggap terpisah.
